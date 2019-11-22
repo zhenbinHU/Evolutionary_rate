@@ -1,0 +1,29 @@
+# in sorghum
+# calculate pi diversity for each gene
+# sum(pi)/length(gene)
+# pi were for snp in the gene
+vcftools<-"/homes/zhenbin/vcftools/bin/vcftools"
+vcf<-"/bulk/zhenbin/TERRA/Genomics_analysis/SNP/SNP_only/BAP_snp_363renamed.vcf"
+cmd<-paste0(vcftools," --vcf ",vcf," --site-pi --out BAP_site_pi")
+system(cmd)
+
+setwd("/bulk/zhenbin/TERRA/Genomics_analysis/SNP/diversity")
+site_pi<-read.table("/bulk/zhenbin/TERRA/Genomics_analysis/SNP/diversity/BAP_site_pi.sites.pi",header=T)
+gff<-read.table("/bulk/zhenbin/Sorghum_GBS/genome/Sbicolor_313_v3.1.gene.gff3",skip=1)
+gff<-gff[grep("Chr",gff$V1),]
+gff<-gff[gff$V3=="gene",]
+gff$V9<-gsub("\\;.+","",gff$V9)
+gff$V1<-gsub("Chr0","",gff$V1)
+gff$V1<-gsub("Chr","",gff$V1)
+
+gene_div<-gff
+gene_div$PI<-NA
+for(i in 1:dim(gff)[1]){
+    chr<-gff$V1[i]
+    start<-gff$V4[i]
+    end<-gff$V5[i]
+    pi<-sum(site_pi$PI[site_pi$CHROM==chr & site_pi$POS >=start & site_pi$POS <= end])/c(end-start+1)
+    gene_div$PI[i]<-pi
+    if(i%%1000==0){cat("first",i,"was done!\n")}
+}
+save(gene_div,file="gene_div_pi.rda")
