@@ -27,3 +27,22 @@ for(i in 1:dim(gff)[1]){
     if(i%%1000==0){cat("first",i,"was done!\n")}
 }
 save(gene_div,file="gene_div_pi.rda")
+
+# theta for gene
+# n is the snp number in the gene
+gene_div<-gff
+gene_div$theta<-NA
+for(i in 1:dim(gff)[1]){
+    chr<-gff$V1[i]
+    start<-gff$V4[i]
+    end<-gff$V5[i]
+    tmp<-site_pi[site_pi$CHROM==chr & site_pi$POS >=start & site_pi$POS <= end,]
+    n<-dim(tmp)[1]
+    S<-n/c(end-start+1)
+    theta<-S/sum(1/c(1:c(n-1)))
+    gene_div$theta[i]<-theta
+    if(i%%1000==0){cat("first",i,"was done!\n")}
+}
+save(gene_div,file="gene_div_theta.rda")
+
+
